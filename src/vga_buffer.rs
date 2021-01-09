@@ -1,3 +1,4 @@
+use volatile::Volatile;
 
 pub enum Color {
     Black = 0,
@@ -27,6 +28,7 @@ impl ColorCode {
     }
 }
 
+#[derive(Copy, Clone)]
 struct ScreenChar {
     ascii_character: u8,
     color_code: ColorCode,
@@ -36,7 +38,9 @@ const BUFFER_HEIGHT: usize = 25;
 const BUFFER_WIDTH: usize = 80;
 
 struct Buffer {
-    chars: [[ScreenChar; BUFFER_WIDTH]; BUFFER_HEIGHT],
+    // specify the writes to buffer as volatile. 
+    // see https://os.phil-opp.com/vga-text-mode/#volatile for more details.
+    chars: [[Volatile<ScreenChar>; BUFFER_WIDTH]; BUFFER_HEIGHT],
 }
 
 pub struct Writer {
@@ -58,10 +62,10 @@ impl Writer {
                 let col = self.coloum_position;
 
                 let color_code = self.color_code;
-                self.buffer.chars[row][col] = ScreenChar {
+                self.buffer.chars[row][col].write(ScreenChar {
                     ascii_character: byte,
                     color_code,
-                };
+                });
                 self.coloum_position += 1;
             }
         }
