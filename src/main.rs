@@ -9,6 +9,7 @@ mod vga_buffer;
 
 use core::panic::PanicInfo;
 
+#[cfg(not(test))]
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     println!("{}", info);
@@ -48,6 +49,16 @@ fn test_runner(tests: &[&dyn Fn()]) {
         test();
     }
     exit_qemu(QemuExitCode::Success);
+}
+
+// panic handler in test mode
+#[cfg(test)]
+#[panic_handler]
+fn panic(info: &PanicInfo) -> ! {
+    serial_println!("[failed]\n");
+    serial_println!("Error: {}\n", info);
+    exit_qemu(QemuExitCode::Failed);
+    loop {}
 }
 
 #[test_case]
