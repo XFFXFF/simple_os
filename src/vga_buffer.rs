@@ -1,4 +1,6 @@
 use core::fmt;
+use lazy_static::lazy_static;
+use spin::Mutex;
 use volatile::Volatile;
 
 pub enum Color {
@@ -72,7 +74,7 @@ impl Writer {
         }
     }
 
-    pub fn write_string(&mut self, s: &str) {
+    pub fn write_str(&mut self, s: &str) {
         for byte in s.bytes() {
             match byte {
                 0x20..=0x7e | b'\n' => self.write_byte(byte),
@@ -107,23 +109,15 @@ impl Writer {
 
 impl fmt::Write for Writer {
     fn write_str(&mut self, s: &str) -> fmt::Result {
-        self.write_string(s);
+        self.write_str(s);
         Ok(())
     }
 }
 
-pub fn print_something() {
-    use core::fmt::Write;
-    let mut writer = Writer {
+lazy_static! {
+    pub static ref WRITER: Mutex<Writer> = Mutex::new(Writer {
         coloum_position: 0,
         color_code: ColorCode::new(Color::Yellow, Color::Black),
         buffer: unsafe { &mut *(0xb8000 as *mut Buffer) },
-    };
-
-    writer.write_byte(b'H');
-    writer.write_string("ello ");
-    writer.write_byte(b'\n');
-    for _ in 0..10 {
-        write!(writer, "The numbers are {} and {}\n", 42, 1.0 / 3.0).unwrap();
-    }
+    });
 }
