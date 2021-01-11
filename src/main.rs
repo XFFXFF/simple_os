@@ -21,9 +21,15 @@ pub extern "C" fn _start() -> ! {
     simple_os::init();
 
     // x86_64::instructions::interrupts::int3();
-    unsafe {
-        *(0xdeadbeef as *mut u64) = 42;
+    // unsafe {
+    //     *(0xdeadbeef as *mut u64) = 42;
+    // }
+
+    fn stack_overflow() {
+        stack_overflow();
     }
+
+    stack_overflow();
 
     #[cfg(test)]
     test_main();
