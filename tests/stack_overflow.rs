@@ -7,6 +7,10 @@ use lazy_static::lazy_static;
 use simple_os::{exit_qemu, serial_print, serial_println, QemuExitCode};
 use x86_64::structures::idt::{InterruptDescriptorTable, InterruptStackFrame};
 
+// To test whether the current double fault handler can avoid a triple fault
+// if the kernel overflows. Why is this a problem?
+// See https://os.phil-opp.com/double-fault-exceptions/#kernel-stack-overflow
+// for more details.
 #[no_mangle] // don't mangle the name of this function
 pub extern "C" fn _start() -> ! {
     serial_print!("stack_overflow::stack_overflow...\t");

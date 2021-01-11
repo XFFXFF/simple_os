@@ -6,6 +6,10 @@ use x86_64::VirtAddr;
 
 pub const DOUBLE_FAULT_IST_INDEX: u16 = 0;
 
+// Create a new TSS that contains a separate double fault stack in its interrupt
+// stack table. The CPU will then always switch to the specified stack before the
+// double fault handler is invoked. This allows kernels to recover from corrupt
+// stack pointers (e.g., on kernel stack overflow).
 lazy_static! {
     static ref TSS: TaskStateSegment = {
         let mut tss = TaskStateSegment::new();
@@ -29,6 +33,9 @@ struct Selectors {
     tss_selector: SegmentSelector,
 }
 
+// Since the TSS uses the segmentation system (for historical reasons), the CPU
+// can not load the table directly, we need to add a new segment descriptor to
+// the Global Descriptor Table (GDT)
 lazy_static! {
     static ref GDT: (GlobalDescriptorTable, Selectors) = {
         let mut gdt = GlobalDescriptorTable::new();
@@ -50,7 +57,9 @@ pub fn init() {
 
     GDT.0.load();
     unsafe {
+        // reload the code segment register using set_cs
         set_cs(GDT.1.code_selector);
+        // load the TSS using load_tss
         load_tss(GDT.1.tss_selector);
     }
 }
