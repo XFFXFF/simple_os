@@ -23,7 +23,10 @@ pub extern "C" fn _start() -> ! {
     #[cfg(test)]
     test_main();
 
-    loop {}
+    loop {
+        use simple_os::print;
+        print!("-");
+    }
 }
 
 // panic handler in test mode
