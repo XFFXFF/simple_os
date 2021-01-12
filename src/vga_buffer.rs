@@ -159,10 +159,18 @@ fn test_println_many() {
 
 #[test_case]
 fn test_println_output() {
+    use x86_64::instructions::interrupts;
+
     let s = "Some test string that fits on a single line";
-    println!("{}", s);
-    for (i, c) in s.chars().enumerate() {
-        let screen_char = WRITER.lock().buffer.chars[BUFFER_HEIGHT - 2][i].read();
-        assert_eq!(char::from(screen_char.ascii_character), c);
-    }
+    interrupts::without_interrupts(|| {
+        // Since the timer interrupt handler can still run before the test, 
+        // we print an additional newline \n before printing the string s. 
+        // This way, we avoid test failure when the timer handler already 
+        // printed some . characters to the current line.
+        println!("\n{}", s);
+        for (i, c) in s.chars().enumerate() {
+            let screen_char = WRITER.lock().buffer.chars[BUFFER_HEIGHT - 2][i].read();
+            assert_eq!(char::from(screen_char.ascii_character), c);
+        }
+    })
 }
