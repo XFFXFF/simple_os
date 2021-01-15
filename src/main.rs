@@ -4,6 +4,8 @@
 #![test_runner(simple_os::test_runner)]
 #![reexport_test_harness_main = "test_main"]
 
+extern crate alloc;
+use alloc::boxed::Box;
 use bootloader::{entry_point, BootInfo};
 use core::panic::PanicInfo;
 use simple_os::memory;
@@ -46,6 +48,8 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
         0x0100_0020_1a10,
         boot_info.physical_memory_offset,
     ];
+
+    let x = Box::new(41);
 
     for &address in addresses.iter() {
         let virt_addr = VirtAddr::new(address);
